@@ -174,17 +174,26 @@ window.addEventListener('scroll', () => {
 
 
 // Counter animation for stats
-const animateCounter = (element, target, duration = 1500) => {
+const animateCounter = (element, targetText, duration = 1500) => {
+    const text = String(targetText).trim();
+    const hasPlus = text.includes('+');
+    const cleanNumber = text.replace('+', '').trim();
+    const target = parseFloat(cleanNumber);
+    if (isNaN(target)) return;
+
+    const decimalPlaces = cleanNumber.includes('.') ? cleanNumber.split('.')[1].length : 0;
     let start = 0;
-    const isDecimal = target % 1 !== 0;
     const step = target / (duration / 16);
+
     const timer = setInterval(() => {
         start += step;
         if (start >= target) {
-            element.textContent = isDecimal ? target.toFixed(1) : (target === 7 ? target + '+' : target);
+            const formatted = decimalPlaces > 0 ? target.toFixed(decimalPlaces) : Math.round(target);
+            element.textContent = formatted + (hasPlus ? '+' : '');
             clearInterval(timer);
         } else {
-            element.textContent = isDecimal ? start.toFixed(1) : Math.floor(start);
+            const formatted = decimalPlaces > 0 ? start.toFixed(decimalPlaces) : Math.floor(start);
+            element.textContent = formatted + (hasPlus ? '+' : '');
         }
     }, 16);
 };
@@ -196,10 +205,11 @@ const statsObserver = new IntersectionObserver((entries) => {
             entry.target.classList.add('counted');
             const statNumber = entry.target.querySelector('.stat-number');
             if (statNumber) {
-                const target = parseFloat(statNumber.textContent);
+                const originalText = statNumber.textContent.trim();
+                const target = parseFloat(originalText.replace('+', ''));
                 if (!isNaN(target)) {
-                    statNumber.textContent = '0';
-                    animateCounter(statNumber, target);
+                    statNumber.textContent = originalText.includes('.') ? (0).toFixed(originalText.split('.')[1].length) : '0';
+                    animateCounter(statNumber, originalText);
                 }
             }
         }
