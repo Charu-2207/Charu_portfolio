@@ -1,0 +1,17 @@
+{
+  "name": "charu-portfolio",
+  "version": "1.0.0",
+  "description": "Portfolio of Charu Nethira S - Aspiring Data Analyst & CSE Student",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "start": "npx serve -l 3000 ."
+  },
+  "keywords": [
+    "portfolio",
+    "data-analyst",
+    "developer"
+  ],
+  "author": "Charu Nethira S",
+  "license": "MIT"
+}

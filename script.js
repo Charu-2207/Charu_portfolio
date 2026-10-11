@@ -108,27 +108,59 @@ const observer = new IntersectionObserver(function(entries) {
             entry.target.style.opacity = '1';
             entry.target.style.transform = 'translateY(0)';
             entry.target.classList.add('animated');
+            observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
 // Observe elements for animations
-document.querySelectorAll('.skill-card, .internship-card, .leadership-card, .cert-category, .academic-card, .about-text, .about-image-wrapper').forEach(el => {
+document.querySelectorAll('.skill-card, .skill-cat-card, .project-card, .internship-card, .leadership-card, .cert-category, .academic-card, .achievement-card, .about-text, .about-badges-wrapper').forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(30px)';
     el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
     observer.observe(el);
 });
 
-// Typing effect for hero title (optional enhancement)
-const typingElements = document.querySelectorAll('.typing-text');
-if (typingElements.length > 0) {
-    typingElements.forEach((el, index) => {
-        setTimeout(() => {
-            el.style.opacity = '1';
-            el.style.animation = 'fadeInUp 0.8s ease';
-        }, index * 200);
-    });
+// Dynamic typewriter effect for hero title
+const typingElement = document.querySelector('.typing-text');
+if (typingElement) {
+    const roles = [
+        'Aspiring Data Analyst',
+        'CSE Student @ VCET',
+        'Power BI & SQL Specialist',
+        'Department Topper (9.3 CGPA)'
+    ];
+    let roleIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 100;
+
+    function typeWriter() {
+        const currentRole = roles[roleIndex];
+        
+        if (isDeleting) {
+            typingElement.textContent = currentRole.substring(0, charIndex - 1);
+            charIndex--;
+            typingSpeed = 50;
+        } else {
+            typingElement.textContent = currentRole.substring(0, charIndex + 1);
+            charIndex++;
+            typingSpeed = 100;
+        }
+
+        if (!isDeleting && charIndex === currentRole.length) {
+            typingSpeed = 2000; // Pause at end of text
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            roleIndex = (roleIndex + 1) % roles.length;
+            typingSpeed = 400; // Pause before typing new text
+        }
+
+        setTimeout(typeWriter, typingSpeed);
+    }
+
+    typeWriter();
 }
 
 // Parallax effect for hero section
@@ -136,32 +168,23 @@ window.addEventListener('scroll', () => {
     const scrolled = window.pageYOffset;
     const hero = document.querySelector('.hero');
     if (hero && scrolled < window.innerHeight) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+        hero.style.transform = `translateY(${scrolled * 0.4}px)`;
     }
 });
 
-// Add hover effect to skill cards
-document.querySelectorAll('.skill-card').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-20px) scale(1.05)';
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = '';
-    });
-});
 
 // Counter animation for stats
-const animateCounter = (element, target, duration = 2000) => {
+const animateCounter = (element, target, duration = 1500) => {
     let start = 0;
-    const increment = target / (duration / 16);
+    const isDecimal = target % 1 !== 0;
+    const step = target / (duration / 16);
     const timer = setInterval(() => {
-        start += increment;
+        start += step;
         if (start >= target) {
-            element.textContent = target + (target === 9.3 ? '' : '+');
+            element.textContent = isDecimal ? target.toFixed(1) : (target === 7 ? target + '+' : target);
             clearInterval(timer);
         } else {
-            element.textContent = start.toFixed(1) + (target === 9.3 ? '' : '+');
+            element.textContent = isDecimal ? start.toFixed(1) : Math.floor(start);
         }
     }, 16);
 };
@@ -211,14 +234,15 @@ const sectionObserver = new IntersectionObserver((entries) => {
         if (entry.isIntersecting) {
             entry.target.style.opacity = '1';
             entry.target.style.transform = 'translateY(0)';
+            sectionObserver.unobserve(entry.target);
         }
     });
 }, {
-    threshold: 0.1,
-    rootMargin: '0px 0px -100px 0px'
+    threshold: 0.05,
+    rootMargin: '0px 0px -40px 0px'
 });
 
-document.querySelectorAll('section').forEach(section => {
+document.querySelectorAll('section:not(.hero)').forEach(section => {
     section.style.opacity = '0';
     section.style.transform = 'translateY(20px)';
     section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -235,5 +259,100 @@ document.addEventListener('DOMContentLoaded', () => {
                 targetSection.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }
+    }
+
+    // Skills Filter Tabs Functionality
+    const skillTabs = document.querySelectorAll('.skill-tab');
+    const skillCards = document.querySelectorAll('.skill-card');
+    const allSkillsGrid = document.getElementById('allSkillsGrid');
+    const categorySkillsGrid = document.getElementById('categorySkillsGrid');
+    const skillCatCards = document.querySelectorAll('.skill-cat-card');
+
+    function applySkillFilter(filter) {
+        // Update active tab button
+        skillTabs.forEach(t => {
+            if (t.getAttribute('data-filter') === filter) {
+                t.classList.add('active');
+            } else {
+                t.classList.remove('active');
+            }
+        });
+
+        if (filter === 'all') {
+            // In All Skills section: Show grouped category boxes, hide individual cards
+            if (allSkillsGrid) {
+                allSkillsGrid.style.display = 'grid';
+                allSkillsGrid.style.opacity = '1';
+                allSkillsGrid.classList.remove('animating');
+                void allSkillsGrid.offsetWidth;
+                allSkillsGrid.classList.add('animating');
+            }
+            if (categorySkillsGrid) {
+                categorySkillsGrid.style.display = 'none';
+            }
+        } else {
+            // Category tab clicked: Hide grouped category boxes, show individual cards
+            if (allSkillsGrid) {
+                allSkillsGrid.style.display = 'none';
+            }
+            if (categorySkillsGrid) {
+                categorySkillsGrid.style.display = 'flex';
+                categorySkillsGrid.style.opacity = '1';
+            }
+
+            skillCards.forEach(card => {
+                const category = card.getAttribute('data-category') || '';
+                let isVisible = false;
+                if (filter === 'soft') {
+                    isVisible = category.includes('soft');
+                } else {
+                    isVisible = category.includes(filter);
+                }
+
+                if (isVisible) {
+                    card.style.display = 'flex';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                    card.classList.remove('animating');
+                    void card.offsetWidth;
+                    card.classList.add('animating');
+                } else {
+                    card.style.display = 'none';
+                    card.classList.remove('animating');
+                }
+            });
+        }
+    }
+
+    if (skillTabs.length > 0) {
+        skillTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const filter = tab.getAttribute('data-filter');
+                applySkillFilter(filter);
+            });
+        });
+
+        // Clicking a category box in All Skills view switches to that category
+        if (skillCatCards.length > 0) {
+            skillCatCards.forEach(catCard => {
+                catCard.addEventListener('click', () => {
+                    const targetCategory = catCard.getAttribute('data-category');
+                    if (targetCategory) {
+                        applySkillFilter(targetCategory);
+                    }
+                });
+            });
+        }
+
+        // Toggle active glow on individual skill cards
+        skillCards.forEach(card => {
+            card.addEventListener('click', () => {
+                skillCards.forEach(c => c.classList.remove('active-glow'));
+                card.classList.add('active-glow');
+            });
+        });
+
+        // Initialize All Skills view
+        applySkillFilter('all');
     }
 });
